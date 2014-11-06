@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+
+BASE_URL=${PASSENGER_ENTERPRISE_LICENSING_BASE_URL:-https://www.phusionpassenger.com}
+TEMPDIR=`mktemp -d /tmp/passenger-bulk.XXXXXXXX`
+
+function cleanup()
+{
+	rm -rf "$TEMPDIR"
+}
+
+trap cleanup EXIT
+
+for F in "$@"; do
+	echo "----- Uploading $F -----"
+	curl --silent --show-error -L --output "$TEMPDIR/output" --write-out '%{http_code}' -F package="@$F" "$BASE_URL/cloud_service/package" $CURL_ARGS > "$TEMPDIR/code"
+	code=`cat "$TEMPDIR/code"`
+	(( code_category = code / 100 ))
+	if [[ "$code_category" != 2 ]]; then
+		echo "The licensing server did not accept $F."
+		echo "Status: $code"
+		echo "Body: `cat $TEMPDIR/output`"
+		exit 1
+	else
+		echo "Success!"
+	fi
+done

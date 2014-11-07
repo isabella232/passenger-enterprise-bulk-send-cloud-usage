@@ -1,3 +1,3 @@
 Usage:
 
-    ./passenger-enterprise-bulk-send-cloud-usage <FILENAMES>
+    ./passenger-enterprise-bulk-send-cloud-usage [--delete] <FILENAMES>
